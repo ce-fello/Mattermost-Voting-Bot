@@ -2,69 +2,44 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    platform: linux/amd64
+    build:
+      context: .
+      args:
+        - PLATFORM=linux/amd64
     ports:
       - "8080:8080"
     depends_on:
-      - postgres
-      - tarantool
-      - mattermost
-    environment:
-      - MM_SERVER_URL=http://mattermost:8065
-      - MM_TOKEN=1g47748hbfrz3b8qeapbfadgfe
-      - DB_URL=postgres://mmuser:password@postgres:5432/mattermost?sslmode=disable
-      - TARANTOOL_URL=tarantool:3301
-      - TARANTOOL_USER=mm_bot
-      - TARANTOOL_PASS=securepassword
+      postgres:
+        condition: service_healthy
+    env_file: .env
     restart: unless-stopped
 
   postgres:
     image: postgres:14
-    environment:
-      POSTGRES_USER: mmuser
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: mattermost
+    env_file: .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mmuser -d mattermost"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
 
   tarantool:
     image: tarantool/tarantool:2.10
     ports:
       - "3301:3301"
     volumes:
-      - ./init.lua:/opt/tarantool/init.lua
+      - ./init.lua:/opt/tarantool/init.lua:ro
       - tarantool_data:/var/lib/tarantool
-    environment:
-      TARANTOOL_USER_NAME: mm_bot
-      TARANTOOL_USER_PASSWORD: securepassword
-    command: ["tarantool", "/opt/tarantool/init.lua"]
-    restart: unless-stopped
-
-  mattermost:
-    image: mattermost/mattermost-team-edition:7.8
-    ports:
-      - "8065:8065"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      MM_SQLSETTINGS_DRIVERNAME: postgres
-      MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:password@postgres:5432/mattermost?sslmode=disable
-    volumes:
-      - mattermost_data:/mattermost/data
-      - mattermost_config:/mattermost/config
-      - mattermost_logs:/mattermost/logs
-    restart: unless-stopped
+    env_file: .env
+    healthcheck:
+      test: ["CMD", "tarantool", "-e", "require('tarantool').ping()"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 volumes:
   postgres_data:
   tarantool_data:
-  mattermost_data:
-  mattermost_config:
-  mattermost_logs:
