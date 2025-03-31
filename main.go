@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/tarantool/go-tarantool"
 	"log"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/tarantool/go-tarantool"
 )
 
 type Bot struct {
@@ -86,7 +87,7 @@ func (b *Bot) Start() error {
 }
 
 func (b *Bot) handleMessage(post *model.Post) {
-	log.Printf(post.Message)
+	log.Printf("%v", post.Message)
 
 	if post.UserId == b.user.Id {
 		return
@@ -118,7 +119,7 @@ func (b *Bot) handleVoteInfo(post *model.Post) {
 	}
 
 	voteID := matches[1]
-	log.Printf("Got vote ID: " + voteID)
+	log.Printf("Got vote ID: %s", voteID)
 
 	log.Printf("Selecting from tarantool...")
 	resp, err := b.tarantool.Select("votes", "primary", 0, 1, tarantool.IterEq, []interface{}{voteID})
@@ -443,7 +444,7 @@ func (b *Bot) sendMessage(channelID, message string) {
 
 func main() {
 	log.Printf("Staring connection to tarantool...")
-	tarantoolConn, err := tarantool.Connect("localhost:3301", tarantool.Opts{
+	tarantoolConn, err := tarantool.Connect("tarantool:3301", tarantool.Opts{
 		User: "mm_bot",
 		Pass: "securepassword",
 	})
@@ -457,7 +458,7 @@ func main() {
 
 	bot, err := NewBot(
 		"http://localhost:8065",
-		"1g47748hbfrz3b8qeapbfadgfe",
+		"your_mattermost_token",
 		tarantoolConn,
 	)
 
