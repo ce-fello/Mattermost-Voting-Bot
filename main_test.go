@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	testMattermostURL   = "http://localhost:8065"
-	testMattermostToken = "your_mattermost_token"
-	testTarantoolAddr   = "localhost:3301"
+	testMattermostURL   = "http://mattermost:8065"
+	testMattermostToken = "your_bot_token"
+	testTarantoolAddr   = "tarantool:3301"
 	testTarantoolUser   = "mm_bot"
 	testTarantoolPass   = "securepassword"
 )

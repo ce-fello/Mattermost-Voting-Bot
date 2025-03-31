@@ -26,23 +26,23 @@ func NewBot(serverURL, token string, tarantoolConn *tarantool.Connection) (*Bot,
 	log.Printf("Created client for bot on %s", serverURL)
 
 	client.SetToken(token)
-	log.Printf("Set bot's token successfully")
+	log.Printf("Set bot's token successfully to %s", token)
 
 	user, _, err := client.GetMe("")
 	if err != nil {
-		log.Printf("Error starting bot: %s", err)
+		log.Printf("Error starting bot 1: %s", err)
 		return nil, err
 	}
 
 	wsClient, err := model.NewWebSocketClient4(strings.Replace(serverURL, "http", "ws", 1), token)
 	if err != nil {
-		log.Printf("Error starting bot: %s", err)
+		log.Printf("Error starting bot 2: %s", err)
 		return nil, err
 	}
 
 	team, _, err := client.GetTeamByName("felco", "")
 	if err != nil {
-		log.Printf("Error starting bot: %s", err)
+		log.Printf("Error starting bot 3: %s", err)
 		return nil, err
 	}
 
@@ -457,8 +457,8 @@ func main() {
 	defer tarantoolConn.Close()
 
 	bot, err := NewBot(
-		"http://localhost:8065",
-		"your_mattermost_token",
+		"http://mattermost:8065",
+		"your_bot_token",
 		tarantoolConn,
 	)
 
